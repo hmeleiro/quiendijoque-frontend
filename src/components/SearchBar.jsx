@@ -5,33 +5,36 @@ const SearchBar = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [searchResults, setSearchResults] = useState([])
 
-  //   useEffect(() => {
-  //     const testAPI = async () => {
-  //       try {
-  //         const response = await axios.get(`/api/test`)
-  //         console.log(response.data)
-  //       } catch (error) {
-  //         console.error(error)
-  //       }
-  //     }
-  //     testAPI()
-  //   }, [])
-
   useEffect(() => {
+    const delay = 500 // debounce delay in milliseconds
+    let timeoutId
+
     const fetchData = async () => {
       try {
-        const response = await axios.get(`/api/search?q=${searchTerm}`)
+        const response = await axios.post('/api/search', {
+          search_terms: searchTerm
+        })
         setSearchResults(response.data)
-        console.log(response.data)
       } catch (error) {
         console.error(error)
       }
     }
 
-    if (searchTerm) {
-      fetchData()
-    } else {
-      setSearchResults([])
+    const debounceSearch = () => {
+      clearTimeout(timeoutId)
+      timeoutId = setTimeout(() => {
+        if (searchTerm) {
+          fetchData()
+        } else {
+          setSearchResults([])
+        }
+      }, delay)
+    }
+
+    debounceSearch()
+
+    return () => {
+      clearTimeout(timeoutId)
     }
   }, [searchTerm])
 
